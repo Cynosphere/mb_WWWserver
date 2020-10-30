@@ -153,7 +153,8 @@ namespace MusicBeePlugin
                         bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
                         int duration = this.mbApiInterface.NowPlaying_GetDuration();
                         int position = this.mbApiInterface.Player_GetPosition();
-                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position);
+                        float volume = this.mbApiInterface.Player_GetVolume();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume);
                         return;
                     }
                 case Plugin.NotificationType.PlayStateChanged:
@@ -165,7 +166,8 @@ namespace MusicBeePlugin
                         bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
                         int duration = this.mbApiInterface.NowPlaying_GetDuration();
                         int position = this.mbApiInterface.Player_GetPosition();
-                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position);
+                        float volume = this.mbApiInterface.Player_GetVolume();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume);
                         return;
                     }
                 default:
