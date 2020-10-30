@@ -17,7 +17,7 @@ namespace MusicBeePlugin
             this.mbApiInterface = mbApiInterface;
         }
 
-        public void UpdateTrack(string title, string artist, string album, string url, bool playing)
+        public void UpdateTrack(string title, string artist, string album, string url, bool playing, int duration, int position)
         {
             this.NowPlaying = new MusicBeeHttpServer.QueueItem
             {
@@ -25,7 +25,9 @@ namespace MusicBeePlugin
                 Artist = artist,
                 Album = album,
                 file = url,
-                playing = playing
+                playing = playing,
+                duration = duration,
+                position = position
             };
         }
 
@@ -89,8 +91,15 @@ namespace MusicBeePlugin
                     this.mbApiInterface.Player_Stop();
                     return;
 
+                case "C_SEEK":
+                    if (path == "") return;
+                    p.writeSuccess();
+                    this.mbApiInterface.Player_SetPosition(Int32.Parse(path));
+                    return;
+
                 // Now playing data
                 case "NP":
+                    this.NowPlaying.position = this.mbApiInterface.Player_GetPosition();
                     MemoryStream jsonStream = new MemoryStream();
                     this.serializadorItem.WriteObject(jsonStream, this.NowPlaying);
                     string jsonData = Encoding.UTF8.GetString(jsonStream.ToArray());
@@ -305,6 +314,10 @@ namespace MusicBeePlugin
             public string Album { get; set; }
 
             public bool playing { get; set; }
+
+            public int duration { get; set; }
+
+            public int position { get; set; }
         }
     }
 }

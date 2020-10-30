@@ -146,16 +146,26 @@ namespace MusicBeePlugin
                     return;
                 case Plugin.NotificationType.TrackChanged:
                     {
-                        bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
+                        string title = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle);
+                        string artist = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist);
+                        string album = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album);
                         string url = this.mbApiInterface.NowPlaying_GetFileUrl();
-                        this.server.UpdateTrack(this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle), this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist), this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album), url, playing);
+                        bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
+                        int duration = this.mbApiInterface.NowPlaying_GetDuration();
+                        int position = this.mbApiInterface.Player_GetPosition();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position);
                         return;
                     }
                 case Plugin.NotificationType.PlayStateChanged:
                     {
-                        bool playing2 = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
-                        string url2 = this.mbApiInterface.NowPlaying_GetFileUrl();
-                        this.server.UpdateTrack(this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle), this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist), this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album), url2, playing2);
+                        string title = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle);
+                        string artist = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist);
+                        string album = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album);
+                        string url = this.mbApiInterface.NowPlaying_GetFileUrl();
+                        bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
+                        int duration = this.mbApiInterface.NowPlaying_GetDuration();
+                        int position = this.mbApiInterface.Player_GetPosition();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position);
                         return;
                     }
                 default:
