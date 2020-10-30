@@ -72,22 +72,22 @@ namespace MusicBeePlugin
                 case "C_PP":
                     p.writeSuccess();
                     this.mbApiInterface.Player_PlayPause();
-                    break;
+                    return;
 
                 case "C_NEXT":
                     p.writeSuccess();
                     this.mbApiInterface.Player_PlayNextTrack();
-                    break;
+                    return;
 
                 case "C_PREV":
                     p.writeSuccess();
                     this.mbApiInterface.Player_PlayPreviousTrack();
-                    break;
+                    return;
 
                 case "C_STOP":
                     p.writeSuccess();
                     this.mbApiInterface.Player_Stop();
-                    break;
+                    return;
 
                 // Now playing data
                 case "NP":
@@ -99,7 +99,7 @@ namespace MusicBeePlugin
                     p.outputStream.WriteLine("");
                     p.outputStream.WriteLine(jsonData);
                     jsonStream.Close();
-                    break;
+                    return;
 
                 // List playlist
                 case "PL":
@@ -109,13 +109,13 @@ namespace MusicBeePlugin
                     List<MusicBeeHttpServer.QueueItem> list = new List<MusicBeeHttpServer.QueueItem>();
                     for (int i = Math.Max(0, index - 5); i < nowPlaying.Count; i++)
                     {
-                        string text6 = nowPlaying[i];
+                        string npFile = nowPlaying[i];
                         MusicBeeHttpServer.QueueItem item = new MusicBeeHttpServer.QueueItem
                         {
-                            Album = this.mbApiInterface.Library_GetFileTag(text6, Plugin.MetaDataType.Album),
-                            Title = this.mbApiInterface.Library_GetFileTag(text6, Plugin.MetaDataType.TrackTitle),
-                            Artist = this.mbApiInterface.Library_GetFileTag(text6, Plugin.MetaDataType.Artist),
-                            file = text6,
+                            Album = this.mbApiInterface.Library_GetFileTag(npFile, Plugin.MetaDataType.Album),
+                            Title = this.mbApiInterface.Library_GetFileTag(npFile, Plugin.MetaDataType.TrackTitle),
+                            Artist = this.mbApiInterface.Library_GetFileTag(npFile, Plugin.MetaDataType.Artist),
+                            file = npFile,
                             queued = (i == index)
                         };
                         list.Add(item);
@@ -125,7 +125,7 @@ namespace MusicBeePlugin
                     playlistStream.Flush();
                     p.outputStream.WriteLine(Encoding.UTF8.GetString(playlistStream.ToArray()));
                     playlistStream.Close();
-                    break;
+                    return;
 
                 // Get album art
                 case "GA":
@@ -133,7 +133,7 @@ namespace MusicBeePlugin
                     if (string.IsNullOrWhiteSpace(artwork))
                     {
                         this.Redirect(p, "/nocover.png");
-                        break;
+                        return;
                     }
                     byte[] artworkImage = Convert.FromBase64String(artwork);
                     MusicBeeHttpServer.SendHeaders(p, "image/jpg", true, new int?(artworkImage.Length));
@@ -141,7 +141,7 @@ namespace MusicBeePlugin
                     p.outputStream.WriteLine("");
                     p.outputStream.Flush();
                     p.outputStream.BaseStream.Write(artworkImage, 0, artworkImage.Length);
-                    break;
+                    return;
 
                 // misc
                 case "QUERY":
@@ -175,29 +175,30 @@ namespace MusicBeePlugin
                     queueListStream.Flush();
                     p.outputStream.WriteLine(Encoding.UTF8.GetString(queueListStream.ToArray()));
                     queueListStream.Close();
-                    break;
+                    return;
 
                 case "ADDITEM": // TODO: send back JSON
                     if (this.mbApiInterface.NowPlayingList_QueueLast(path))
                     {
                         this.Redirect(p, "OKAdd.html");
-                        break;
+                        return;
                     }
                     this.Redirect(p, "KOAdd.html");
-                    break;
+                    return;
 
                 // arbitrarily deprecated routes
                 case "T_G_RATE":
                 case "T_S_RATE":
                 case "DW":
                 case "LYRICS":
+                    p.writeFailure();
                     p.outputStream.Write("Route deprecated");
-                    break;
+                    return;
 
                 // static file serving
                 default:
                     string staticFiles = Path.Combine(Path.GetDirectoryName(base.GetType().Assembly.Location), "WWWskin");
-                    string fullPath = Path.Combine(staticFiles, path);
+                    string fullPath = Path.Combine(staticFiles, route);
                     if (!Path.GetFullPath(fullPath).ToLowerInvariant().StartsWith(Path.GetFullPath(staticFiles).ToLowerInvariant()))
                     {
                         p.writeFailure();
@@ -217,7 +218,7 @@ namespace MusicBeePlugin
                         p.outputStream.WriteLine("");
                         MusicBeeHttpServer.SendFile(p, staticFileInfo);
                     }
-                    break;
+                    return;
             }
         }
 
