@@ -157,6 +157,7 @@ namespace Bend.Util
         {
             this.outputStream.WriteLine("HTTP/1.0 200 OK");
             this.outputStream.WriteLine("Content-Type: text/html");
+            this.outputStream.WriteLine("Access-Control-Allow-Origin: *");
             this.outputStream.WriteLine("Connection: close");
             this.outputStream.WriteLine("");
         }
@@ -164,6 +165,7 @@ namespace Bend.Util
         public void writeFailure()
         {
             this.outputStream.WriteLine("HTTP/1.0 404 File not found");
+            this.outputStream.WriteLine("Access-Control-Allow-Origin: *");
             this.outputStream.WriteLine("Connection: close");
             this.outputStream.WriteLine("");
         }

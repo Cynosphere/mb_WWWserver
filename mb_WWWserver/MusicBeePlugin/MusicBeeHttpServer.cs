@@ -12,12 +12,13 @@ namespace MusicBeePlugin
 {
     public class MusicBeeHttpServer : HttpServer
     {
+
         public MusicBeeHttpServer(int port, Plugin.MusicBeeApiInterface mbApiInterface) : base(port)
         {
             this.mbApiInterface = mbApiInterface;
         }
 
-        public void UpdateTrack(string title, string artist, string album, string url, bool playing, int duration, int position, float volume)
+        public void UpdateTrack(string title, string artist, string album, string url, string playbackState, int duration, int position, float volume, bool shuffle, string repeat, bool scrobbling)
         {
             this.NowPlaying = new MusicBeeHttpServer.QueueItem
             {
@@ -25,10 +26,13 @@ namespace MusicBeePlugin
                 Artist = artist,
                 Album = album,
                 file = url,
-                playing = playing,
+                playing = playbackState,
                 duration = duration,
                 position = position,
-                volume = volume
+                volume = volume,
+                shuffle = shuffle,
+                repeat = repeat,
+                scrobbling = scrobbling
             };
         }
 
@@ -47,6 +51,36 @@ namespace MusicBeePlugin
         {
             p.outputStream.WriteLine("HTTP/1.1 303 See other");
             p.outputStream.WriteLine("Location: " + newurl);
+        }
+
+        private string GetPlaybackStateString(Plugin.PlayState state)
+        {
+            switch (state)
+            {
+                case Plugin.PlayState.Loading:
+                    return "loading";
+                case Plugin.PlayState.Playing:
+                    return "playing";
+                case Plugin.PlayState.Paused:
+                    return "paused";
+                case Plugin.PlayState.Stopped:
+                    return "stopped";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private string GetRepeatString(Plugin.RepeatMode state)
+        {
+            switch (state)
+            {
+                case Plugin.RepeatMode.All:
+                    return "all";
+                case Plugin.RepeatMode.One:
+                    return "single";
+                default:
+                    return "none";
+            }
         }
 
         private void ProcessHTTP(HttpProcessor p, string dataPost)
@@ -93,21 +127,64 @@ namespace MusicBeePlugin
                     return;
 
                 case "C_SEEK":
-                    if (path == "") return;
+                    if (path == "") {
+                        p.writeFailure();
+                        return;
+                    }
                     p.writeSuccess();
                     this.mbApiInterface.Player_SetPosition(Int32.Parse(path));
                     return;
+
                 case "C_VOL":
-                    if (path == "") return;
+                    if (path == "")
+                    {
+                        p.writeFailure();
+                        return;
+                    }
                     p.writeSuccess();
                     int clamped = Math.Max(0, Math.Min(Int32.Parse(path), 100));
                     this.mbApiInterface.Player_SetVolume(clamped / 100F);
+                    return;
+
+                case "C_SHUF":
+                    p.writeSuccess();
+                    bool shufState = path == "1" ? true : false;
+                    this.mbApiInterface.Player_SetShuffle(shufState);
+                    return;
+
+                case "C_REP":
+                    p.writeSuccess();
+                    Plugin.RepeatMode repState;
+                    switch(path)
+                    {
+                        case "0":
+                        default:
+                            repState = Plugin.RepeatMode.None;
+                            break;
+                        case "1":
+                            repState = Plugin.RepeatMode.All;
+                            break;
+                        case "2":
+                            repState = Plugin.RepeatMode.One;
+                            break;
+                    }
+                    this.mbApiInterface.Player_SetRepeat(repState);
+                    return;
+
+                case "C_SCROB":
+                    p.writeSuccess();
+                    bool scrobState = path == "1" ? true : false;
+                    this.mbApiInterface.Player_SetScrobbleEnabled(scrobState);
                     return;
 
                 // Now playing data
                 case "NP":
                     this.NowPlaying.position = this.mbApiInterface.Player_GetPosition();
                     this.NowPlaying.volume = this.mbApiInterface.Player_GetVolume();
+                    this.NowPlaying.playing = GetPlaybackStateString(this.mbApiInterface.Player_GetPlayState());
+                    this.NowPlaying.repeat = GetRepeatString(this.mbApiInterface.Player_GetRepeat());
+                    this.NowPlaying.shuffle = this.mbApiInterface.Player_GetShuffle();
+                    this.NowPlaying.scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();
 
                     MemoryStream jsonStream = new MemoryStream();
                     this.serializadorItem.WriteObject(jsonStream, this.NowPlaying);
@@ -155,6 +232,7 @@ namespace MusicBeePlugin
                     }
                     byte[] artworkImage = Convert.FromBase64String(artwork);
                     MusicBeeHttpServer.SendHeaders(p, "image/jpg", true, new int?(artworkImage.Length));
+                    p.outputStream.WriteLine("Access-Control-Allow-Origin: *");
                     p.outputStream.WriteLine("Content-Transfer-Encoding: binary");
                     p.outputStream.WriteLine("");
                     p.outputStream.Flush();
@@ -228,11 +306,13 @@ namespace MusicBeePlugin
                         if (Path.GetExtension(fullPath).ToLowerInvariant() == ".html")
                         {
                             MusicBeeHttpServer.SendHeaders(p, MimeTypes.TypeFromExt(fullPath), false, null);
+                            p.outputStream.WriteLine("Access-Control-Allow-Origin: *");
                             p.outputStream.WriteLine("");
                             p.outputStream.Write(this.Traduce(File.ReadAllText(fullPath)));
                             return;
                         }
                         MusicBeeHttpServer.SendHeaders(p, MimeTypes.TypeFromExt(fullPath), true, new int?((int)staticFileInfo.Length));
+                        p.outputStream.WriteLine("Access-Control-Allow-Origin: *");
                         p.outputStream.WriteLine("");
                         MusicBeeHttpServer.SendFile(p, staticFileInfo);
                     }
@@ -322,13 +402,19 @@ namespace MusicBeePlugin
 
             public string Album { get; set; }
 
-            public bool playing { get; set; }
+            public string playing { get; set; }
 
             public int duration { get; set; }
 
             public int position { get; set; }
 
             public float volume { get; set; }
+
+            public bool shuffle { get; set; }
+
+            public string repeat { get; set; }
+
+            public bool scrobbling { get; set; }
         }
     }
 }

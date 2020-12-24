@@ -136,25 +136,73 @@ namespace MusicBeePlugin
         {
         }
 
+        private string GetPlaybackStateString(Plugin.PlayState state)
+        {
+            switch (state)
+            {
+                case Plugin.PlayState.Loading:
+                    return "loading";
+                case Plugin.PlayState.Playing:
+                    return "playing";
+                case Plugin.PlayState.Paused:
+                    return "paused";
+                case Plugin.PlayState.Stopped:
+                    return "stopped";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private string GetRepeatString(Plugin.RepeatMode state)
+        {
+            switch (state)
+            {
+                case Plugin.RepeatMode.All:
+                    return "all";
+                case Plugin.RepeatMode.One:
+                    return "single";
+                default:
+                    return "none";
+            }
+        }
+
         public void ReceiveNotification(string sourceFileUrl, Plugin.NotificationType type)
         {
             switch (type)
             {
                 case Plugin.NotificationType.PluginStartup:
-                    this.Load(this.mbApiInterface.Setting_GetPersistentStoragePath());
-                    this.RestartServer();
-                    return;
+                    {
+                        this.Load(this.mbApiInterface.Setting_GetPersistentStoragePath());
+                        this.RestartServer();
+
+                        string title = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle);
+                        string artist = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist);
+                        string album = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album);
+                        string url = this.mbApiInterface.NowPlaying_GetFileUrl();
+                        string playing = GetPlaybackStateString(this.mbApiInterface.Player_GetPlayState());
+                        int duration = this.mbApiInterface.NowPlaying_GetDuration();
+                        int position = this.mbApiInterface.Player_GetPosition();
+                        float volume = this.mbApiInterface.Player_GetVolume();
+                        bool shuffle = this.mbApiInterface.Player_GetShuffle();
+                        string repeat = GetRepeatString(this.mbApiInterface.Player_GetRepeat());
+                        bool scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume, shuffle, repeat, scrobbling);
+                        return;
+                    }
                 case Plugin.NotificationType.TrackChanged:
                     {
                         string title = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.TrackTitle);
                         string artist = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist);
                         string album = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album);
                         string url = this.mbApiInterface.NowPlaying_GetFileUrl();
-                        bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
+                        string playing = GetPlaybackStateString(this.mbApiInterface.Player_GetPlayState());
                         int duration = this.mbApiInterface.NowPlaying_GetDuration();
                         int position = this.mbApiInterface.Player_GetPosition();
                         float volume = this.mbApiInterface.Player_GetVolume();
-                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume);
+                        bool shuffle = this.mbApiInterface.Player_GetShuffle();
+                        string repeat = GetRepeatString(this.mbApiInterface.Player_GetRepeat());
+                        bool scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume, shuffle, repeat, scrobbling);
                         return;
                     }
                 case Plugin.NotificationType.PlayStateChanged:
@@ -163,11 +211,14 @@ namespace MusicBeePlugin
                         string artist = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Artist);
                         string album = this.mbApiInterface.NowPlaying_GetFileTag(Plugin.MetaDataType.Album);
                         string url = this.mbApiInterface.NowPlaying_GetFileUrl();
-                        bool playing = this.mbApiInterface.Player_GetPlayState() == Plugin.PlayState.Playing;
+                        string playing = GetPlaybackStateString(this.mbApiInterface.Player_GetPlayState());
                         int duration = this.mbApiInterface.NowPlaying_GetDuration();
                         int position = this.mbApiInterface.Player_GetPosition();
                         float volume = this.mbApiInterface.Player_GetVolume();
-                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume);
+                        bool shuffle = this.mbApiInterface.Player_GetShuffle();
+                        string repeat = GetRepeatString(this.mbApiInterface.Player_GetRepeat());
+                        bool scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();
+                        this.server.UpdateTrack(title, artist, album, url, playing, duration, position, volume, shuffle, repeat, scrobbling);
                         return;
                     }
                 default:

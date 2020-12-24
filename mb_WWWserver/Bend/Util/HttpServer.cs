@@ -16,17 +16,22 @@ namespace Bend.Util
         public void listen()
         {
             byte[] address = new byte[4];
-            this.listener = new TcpListener(new IPAddress(address), this.port);
-            this.listener.Start();
-            while (this.is_active)
+            try
             {
-                TcpClient s = this.listener.AcceptTcpClient();
-                HttpProcessor @object = new HttpProcessor(s, this);
-                new Thread(new ThreadStart(@object.process))
+                this.listener = new TcpListener(new IPAddress(address), this.port);
+                this.listener.Start();
+                while (this.is_active)
                 {
-                    IsBackground = true
-                }.Start();
-                Thread.Sleep(1);
+                    TcpClient s = this.listener.AcceptTcpClient();
+                    HttpProcessor @object = new HttpProcessor(s, this);
+                    new Thread(new ThreadStart(@object.process))
+                    {
+                        IsBackground = true
+                    }.Start();
+                    Thread.Sleep(1);
+                }
+            } catch (SocketException e) {
+
             }
         }
 
