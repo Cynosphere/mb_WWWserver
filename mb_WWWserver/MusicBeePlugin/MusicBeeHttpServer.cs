@@ -227,7 +227,7 @@ namespace MusicBeePlugin
                     string artwork = this.mbApiInterface.Library_GetArtwork(path, 0);
                     if (string.IsNullOrWhiteSpace(artwork))
                     {
-                        this.Redirect(p, "/nocover.png");
+                        this.Redirect(p, "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(base.GetType().Assembly.Location), "WWWskin", "nocover.png"))));
                         return;
                     }
                     byte[] artworkImage = Convert.FromBase64String(artwork);
