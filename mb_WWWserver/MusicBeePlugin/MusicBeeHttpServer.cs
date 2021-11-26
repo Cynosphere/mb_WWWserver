@@ -227,7 +227,13 @@ namespace MusicBeePlugin
                     string artwork = this.mbApiInterface.Library_GetArtwork(path, 0);
                     if (string.IsNullOrWhiteSpace(artwork))
                     {
-                        this.Redirect(p, "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(base.GetType().Assembly.Location), "WWWskin", "nocover.png"))));
+                        byte[] noArtworkImage = File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(base.GetType().Assembly.Location), "WWWskin", "nocover.png"));
+                        MusicBeeHttpServer.SendHeaders(p, "image/jpg", true, new int?(noArtworkImage.Length));
+                        p.outputStream.WriteLine("Access-Control-Allow-Origin: *");
+                        p.outputStream.WriteLine("Content-Transfer-Encoding: binary");
+                        p.outputStream.WriteLine("");
+                        p.outputStream.Flush();
+                        p.outputStream.BaseStream.Write(noArtworkImage, 0, noArtworkImage.Length);
                         return;
                     }
                     byte[] artworkImage = Convert.FromBase64String(artwork);
