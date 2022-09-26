@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -155,7 +153,7 @@ namespace MusicBeePlugin
                 case "C_REP":
                     p.writeSuccess();
                     Plugin.RepeatMode repState;
-                    switch(path)
+                    switch (path)
                     {
                         case "0":
                         default:
@@ -286,6 +284,11 @@ namespace MusicBeePlugin
                         return;
                     }
                     this.Redirect(p, "KOAdd.html");
+                    return;
+
+                case "CLEAR":
+                    p.writeSuccess();
+                    this.mbApiInterface.NowPlayingList_Clear();
                     return;
 
                 // arbitrarily deprecated routes
