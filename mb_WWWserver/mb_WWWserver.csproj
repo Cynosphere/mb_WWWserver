@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>mb_WWWserver</RootNamespace>
     <AssemblyName>mb_WWWserver</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -45,6 +45,7 @@
     <Compile Include="Bend\Util\HttpServer.cs" />
     <Compile Include="Bend\Util\MyHttpServer.cs" />
     <Compile Include="MusicBeePlugin\MimeTypes.cs" />
+    <Compile Include="MusicBeePlugin\MusicBeeInterface.cs" />
     <Compile Include="MusicBeePlugin\MusicBeeHttpServer.cs" />
     <Compile Include="MusicBeePlugin\Plugin.cs" />
     <Compile Include="MusicBeePlugin\Translation.cs" />

@@ -18,7 +18,7 @@ namespace MusicBeePlugin
             this.mbApiInterface = mbApiInterface;
         }
 
-        public void UpdateTrack(string title, string artist, string album, string url, string playbackState, int duration, int position, float volume, bool shuffle, string repeat, bool scrobbling)
+        public void UpdateTrack(string title, string artist, string album, string url, string playbackState, int duration, int position, float volume, bool shuffle, string repeat, bool scrobbling, string albumArtist, int currentTrack, int totalTracks)
         {
             this.NowPlaying = new MusicBeeHttpServer.QueueItem
             {
@@ -32,7 +32,10 @@ namespace MusicBeePlugin
                 volume = volume,
                 shuffle = shuffle,
                 repeat = repeat,
-                scrobbling = scrobbling
+                scrobbling = scrobbling,
+                AlbumArtist = albumArtist,
+                currentTrack = currentTrack,
+                totalTracks = totalTracks,
             };
         }
 
@@ -179,12 +182,12 @@ namespace MusicBeePlugin
 
                 // Now playing data
                 case "NP":
-                    this.NowPlaying.position = this.mbApiInterface.Player_GetPosition();
+                    /*this.NowPlaying.position = this.mbApiInterface.Player_GetPosition();
                     this.NowPlaying.volume = this.mbApiInterface.Player_GetVolume();
                     this.NowPlaying.playing = GetPlaybackStateString(this.mbApiInterface.Player_GetPlayState());
                     this.NowPlaying.repeat = GetRepeatString(this.mbApiInterface.Player_GetRepeat());
                     this.NowPlaying.shuffle = this.mbApiInterface.Player_GetShuffle();
-                    this.NowPlaying.scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();
+                    this.NowPlaying.scrobbling = this.mbApiInterface.Player_GetScrobbleEnabled();*/
 
                     MemoryStream jsonStream = new MemoryStream();
                     this.serializadorItem.WriteObject(jsonStream, this.NowPlaying);
@@ -421,6 +424,12 @@ namespace MusicBeePlugin
             public string repeat { get; set; }
 
             public bool scrobbling { get; set; }
+
+            public string AlbumArtist { get; set; }
+
+            public int currentTrack { get; set; }
+
+            public int totalTracks { get; set; }
         }
     }
 }
